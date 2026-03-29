@@ -12,7 +12,7 @@ class TrackSentinelPerformance
         $start = microtime(true);
         $memStart = memory_get_usage(true);
 
-        SentinelContext::breadcrumb('request', $request->method() . ' ' . $request->path());
+        SentinelContext::breadcrumb('request', $request->method().' '.$request->path());
 
         $response = $next($request);
 

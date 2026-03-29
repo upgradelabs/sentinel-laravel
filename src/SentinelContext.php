@@ -16,7 +16,6 @@ class SentinelContext
     /**
      * Add custom context that will be attached to error reports.
      *
-     * @param  array  $data
      * @return void
      */
     public static function set(array $data)
@@ -49,7 +48,6 @@ class SentinelContext
      *
      * @param  string  $category
      * @param  string  $message
-     * @param  array  $data
      * @return void
      */
     public static function breadcrumb($category, $message, array $data = [])

@@ -5,6 +5,8 @@ namespace UpgradeLabs\SentinelLaravel;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\ServiceProvider;
+use UpgradeLabs\SentinelLaravel\Commands\SentinelDeployCommand;
+use UpgradeLabs\SentinelLaravel\Listeners\BreadcrumbEventSubscriber;
 
 class SentinelServiceProvider extends ServiceProvider
 {
@@ -36,7 +38,7 @@ class SentinelServiceProvider extends ServiceProvider
             ], 'sentinel-config');
 
             $this->commands([
-                \UpgradeLabs\SentinelLaravel\Commands\SentinelDeployCommand::class,
+                SentinelDeployCommand::class,
             ]);
         }
 
@@ -97,7 +99,7 @@ class SentinelServiceProvider extends ServiceProvider
 
         try {
             $this->app->make('events')->subscribe(
-                new \UpgradeLabs\SentinelLaravel\Listeners\BreadcrumbEventSubscriber
+                new BreadcrumbEventSubscriber
             );
         } catch (\Throwable $e) {
             // Silent fail

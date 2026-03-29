@@ -4,6 +4,7 @@ namespace UpgradeLabs\SentinelLaravel;
 
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Level;
+use Monolog\Logger;
 use Monolog\LogRecord;
 use Psr\Log\LoggerInterface;
 
@@ -12,12 +13,11 @@ class SentinelLogChannel
     /**
      * Create a custom Monolog instance.
      *
-     * @param  array  $config
      * @return LoggerInterface
      */
     public function __invoke(array $config)
     {
-        $logger = new \Monolog\Logger('sentinel');
+        $logger = new Logger('sentinel');
         $logger->pushHandler(new SentinelLogHandler(
             isset($config['level']) ? Level::fromName($config['level']) : Level::Error
         ));
@@ -50,7 +50,7 @@ class SentinelLogHandler extends AbstractProcessingHandler
         $level = strtolower($record->level->name);
 
         $payload = [
-            'exception_class' => 'Log\\' . ucfirst($level),
+            'exception_class' => 'Log\\'.ucfirst($level),
             'message' => $record->message,
             'file' => $record->context['file'] ?? 'log',
             'line' => $record->context['line'] ?? 0,

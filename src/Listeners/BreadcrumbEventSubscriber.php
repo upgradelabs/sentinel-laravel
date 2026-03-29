@@ -24,7 +24,7 @@ class BreadcrumbEventSubscriber
             return;
         }
 
-        SentinelContext::breadcrumb('cache', 'hit: ' . $event->key);
+        SentinelContext::breadcrumb('cache', 'hit: '.$event->key);
     }
 
     public function handleCacheMissed($event)
@@ -33,7 +33,7 @@ class BreadcrumbEventSubscriber
             return;
         }
 
-        SentinelContext::breadcrumb('cache', 'miss: ' . $event->key);
+        SentinelContext::breadcrumb('cache', 'miss: '.$event->key);
     }
 
     public function handleJobProcessing($event)
@@ -42,12 +42,12 @@ class BreadcrumbEventSubscriber
             return;
         }
 
-        SentinelContext::breadcrumb('job', 'processing: ' . $event->job->resolveName());
+        SentinelContext::breadcrumb('job', 'processing: '.$event->job->resolveName());
     }
 
     public function handleMailSending($event)
     {
-        SentinelContext::breadcrumb('mail', 'sending: ' . get_class($event->message));
+        SentinelContext::breadcrumb('mail', 'sending: '.get_class($event->message));
     }
 
     /**

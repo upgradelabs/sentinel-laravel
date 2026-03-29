@@ -119,6 +119,9 @@ Each error report includes:
 - **Request data** (URL, method, headers, input — sensitive fields redacted)
 - **Authenticated user** (id, email, name)
 - **Previous exception** chain
+- **Custom context** (order_id, payment_method, etc.)
+- **Breadcrumbs** (DB queries, cache, jobs — sequence of events before the error)
+- **Performance** (request duration, memory usage — when middleware is active)
 
 ### Data Privacy
 
@@ -191,6 +194,109 @@ app(\UpgradeLabs\SentinelLaravel\SentinelClient::class)->deploy([
     'environment' => 'production',
     'deployer' => 'CI/CD',
 ]);
+```
+
+## Context Enrichment
+
+Add custom context that gets attached to any error that occurs during the request:
+
+```php
+use UpgradeLabs\SentinelLaravel\SentinelContext;
+
+// Add context — available in the error report's "context" section
+SentinelContext::set([
+    'order_id' => 123,
+    'payment_method' => 'stripe',
+    'subscription_plan' => 'pro',
+]);
+
+// Context is automatically cleared after each error report
+```
+
+## Breadcrumbs
+
+Breadcrumbs automatically track the sequence of events leading up to an error. Enabled by default.
+
+**Auto-captured events:**
+- Database queries (SQL, time, connection)
+- Cache hits and misses
+- Queue job processing
+
+**Add manual breadcrumbs:**
+```php
+use UpgradeLabs\SentinelLaravel\SentinelContext;
+
+SentinelContext::breadcrumb('payment', 'Charging customer', ['amount' => 99.99]);
+SentinelContext::breadcrumb('api', 'Called Stripe API', ['endpoint' => '/charges']);
+```
+
+**Configure in `config/sentinel.php`:**
+```php
+'breadcrumbs' => [
+    'enabled' => true,
+    'queries' => true,   // DB queries
+    'cache' => false,     // Cache events
+    'jobs' => true,       // Queue jobs
+],
+```
+
+## Performance Tracking
+
+Track request duration and memory usage by adding the middleware:
+
+```php
+// In app/Http/Kernel.php or bootstrap/app.php
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->web(append: [
+        \UpgradeLabs\SentinelLaravel\Middleware\TrackSentinelPerformance::class,
+    ]);
+})
+```
+
+Performance data (duration_ms, memory_peak_mb) is automatically included in error reports.
+
+## Log Channel
+
+Send Laravel log entries to Sentinel by adding a custom log channel:
+
+```php
+// config/logging.php
+'channels' => [
+    'sentinel' => [
+        'driver' => 'custom',
+        'via' => \UpgradeLabs\SentinelLaravel\SentinelLogChannel::class,
+        'level' => 'error', // Only send error and above
+    ],
+],
+```
+
+Then use it alongside your default channel:
+
+```php
+// .env
+LOG_CHANNEL=stack
+LOG_STACK=daily,sentinel
+
+// Or log to Sentinel explicitly
+Log::channel('sentinel')->error('Payment failed', ['order_id' => 123]);
+```
+
+## Read API
+
+Pull data from Sentinel for external tools (Grafana, custom dashboards):
+
+```bash
+# Project stats
+curl -H "Authorization: Bearer TOKEN" https://sentinel.upgradelabs.pt/api/v1/stats
+
+# Errors (paginated, filterable by status/severity)
+curl -H "Authorization: Bearer TOKEN" https://sentinel.upgradelabs.pt/api/v1/errors?status=unresolved
+
+# Deploys
+curl -H "Authorization: Bearer TOKEN" https://sentinel.upgradelabs.pt/api/v1/deploys
+
+# Downtime history
+curl -H "Authorization: Bearer TOKEN" https://sentinel.upgradelabs.pt/api/v1/downtime
 ```
 
 ## Testing

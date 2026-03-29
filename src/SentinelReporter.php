@@ -15,7 +15,6 @@ class SentinelReporter
     }
 
     /**
-     * @param  \Throwable  $exception
      * @return void
      */
     public function report(\Throwable $exception)
@@ -36,7 +35,6 @@ class SentinelReporter
     }
 
     /**
-     * @param  \Throwable  $exception
      * @return array
      */
     public function buildPayload(\Throwable $exception)
@@ -82,7 +80,6 @@ class SentinelReporter
     }
 
     /**
-     * @param  \Throwable  $exception
      * @return bool
      */
     protected function shouldIgnore(\Throwable $exception)
@@ -99,7 +96,6 @@ class SentinelReporter
     }
 
     /**
-     * @param  \Throwable  $exception
      * @return string
      */
     protected function determineSeverity(\Throwable $exception)
@@ -171,7 +167,6 @@ class SentinelReporter
     }
 
     /**
-     * @param  array  $headers
      * @return array
      */
     protected function filterHeaders(array $headers)
@@ -210,7 +205,6 @@ class SentinelReporter
     }
 
     /**
-     * @param  \Throwable  $exception
      * @return array
      */
     protected function collectContext(\Throwable $exception)

@@ -43,16 +43,16 @@ class SentinelDeployCommand extends Command
 
         if ($response && $response->successful()) {
             $json = $response->json();
-            $this->info('Deploy recorded for ' . ($json['project'] ?? 'project') . '.');
+            $this->info('Deploy recorded for '.($json['project'] ?? 'project').'.');
 
             if (isset($data['version'])) {
-                $this->line('  Version: ' . $data['version']);
+                $this->line('  Version: '.$data['version']);
             }
             if (isset($data['commit_hash'])) {
-                $this->line('  Commit:  ' . $data['commit_hash']);
+                $this->line('  Commit:  '.$data['commit_hash']);
             }
             if (isset($data['branch'])) {
-                $this->line('  Branch:  ' . $data['branch']);
+                $this->line('  Branch:  '.$data['branch']);
             }
 
             return 0;
@@ -61,8 +61,8 @@ class SentinelDeployCommand extends Command
         $this->error('Failed to record deploy.');
 
         if ($response) {
-            $this->line('Status: ' . $response->status());
-            $this->line('Response: ' . $response->body());
+            $this->line('Status: '.$response->status());
+            $this->line('Response: '.$response->body());
         }
 
         return 1;
