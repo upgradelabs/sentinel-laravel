@@ -129,18 +129,36 @@ Sensitive fields are automatically redacted from request data:
 - `credit_card`, `card_number`, `cvv`, `ssn`
 - Authorization, Cookie, and CSRF headers
 
+## Deploy Tracking
+
+Record deployments so Sentinel can correlate errors with releases:
+
+```php
+app(\UpgradeLabs\SentinelLaravel\SentinelClient::class)->deploy([
+    'version' => '1.2.0',
+    'commit_hash' => 'abc123',
+    'branch' => 'main',
+    'environment' => 'production',
+    'deployer' => 'CI/CD',
+]);
+```
+
 ## Testing
 
-Verify your setup:
+### Verify configuration
 
 ```bash
 php artisan tinker
 
-# Check configuration
 >>> app(\UpgradeLabs\SentinelLaravel\SentinelClient::class)->isConfigured()
 // Should return: true
+```
 
-# Send a test error report
+### Test error reporting
+
+```bash
+php artisan tinker
+
 >>> $response = app(\UpgradeLabs\SentinelLaravel\SentinelClient::class)->testReport()
 >>> $response->status()   // Should return: 201
 >>> $response->json()     // Should show: {"message": "Error reported successfully.", ...}
@@ -148,6 +166,29 @@ php artisan tinker
 # Or test with a real exception
 >>> app(\UpgradeLabs\SentinelLaravel\SentinelReporter::class)->report(new \RuntimeException('Test from tinker'))
 ```
+
+### Test heartbeat
+
+Send a manual heartbeat to verify your app shows as "Online" on the Sentinel status page:
+
+```bash
+php artisan tinker
+
+>>> $response = app(\UpgradeLabs\SentinelLaravel\SentinelClient::class)->heartbeat()
+>>> $response->status()   // Should return: 200
+>>> $response->json()     // Should show: {"message": "pong", "project": "...", ...}
+```
+
+Or test with curl using your project's API token:
+
+```bash
+curl -H "Authorization: Bearer YOUR_PROJECT_TOKEN" \
+  https://sentinel.upgradelabs.pt/api/v1/health
+```
+
+Once a heartbeat is received, your project shows as **Online** on the status page. If no heartbeat is received for 10+ minutes, it switches to **Offline** and a critical alert email is sent.
+
+With the scheduler running (`* * * * * php artisan schedule:run`), heartbeats are sent automatically every 5 minutes — no manual work needed.
 
 ## License
 
