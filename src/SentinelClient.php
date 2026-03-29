@@ -56,6 +56,46 @@ class SentinelClient
         ]);
     }
 
+    /**
+     * Record a deployment.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function deploy(array $data = []): ?Response
+    {
+        if (! $this->token) {
+            return null;
+        }
+
+        try {
+            return Http::withToken($this->token)
+                ->timeout($this->timeout)
+                ->acceptJson()
+                ->post($this->baseUrl.'/api/v1/deploy', $data);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Send a heartbeat ping.
+     */
+    public function heartbeat(): ?Response
+    {
+        if (! $this->token) {
+            return null;
+        }
+
+        try {
+            return Http::withToken($this->token)
+                ->timeout($this->timeout)
+                ->acceptJson()
+                ->get($this->baseUrl.'/api/v1/health');
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     public function getToken(): ?string
     {
         return $this->token;
