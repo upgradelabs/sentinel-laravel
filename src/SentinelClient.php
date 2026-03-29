@@ -7,41 +7,55 @@ use Illuminate\Support\Facades\Http;
 
 class SentinelClient
 {
-    protected string $baseUrl = 'https://sentinel.upgradelabs.pt';
+    /** @var string */
+    protected $baseUrl = 'https://sentinel.upgradelabs.pt';
 
-    public function __construct(
-        protected ?string $token,
-        protected int $timeout = 5,
-    ) {}
+    /** @var string|null */
+    protected $token;
+
+    /** @var int */
+    protected $timeout;
+
+    /**
+     * @param  string|null  $token
+     * @param  int  $timeout
+     */
+    public function __construct($token, $timeout = 5)
+    {
+        $this->token = $token;
+        $this->timeout = $timeout;
+    }
 
     /**
      * Send an error report payload to Sentinel.
      *
-     * @param  array<string, mixed>  $payload
+     * @param  array  $payload
+     * @return Response|null
      */
-    public function report(array $payload): ?Response
+    public function report(array $payload)
     {
         if (! $this->token) {
             return null;
         }
 
-        $endpoint = $this->baseUrl.'/api/v1/report';
+        $endpoint = $this->baseUrl . '/api/v1/report';
 
         try {
             return Http::withToken($this->token)
                 ->timeout($this->timeout)
                 ->acceptJson()
                 ->post($endpoint, $payload);
-        } catch (\Throwable) {
-            // Silently fail — we don't want Sentinel reporting to break the app
+        } catch (\Throwable $e) {
             return null;
         }
     }
 
     /**
      * Send a test error report to verify the connection.
+     *
+     * @return Response|null
      */
-    public function testReport(): ?Response
+    public function testReport()
     {
         return $this->report([
             'exception_class' => 'UpgradeLabs\\SentinelLaravel\\TestException',
@@ -59,9 +73,10 @@ class SentinelClient
     /**
      * Record a deployment.
      *
-     * @param  array<string, mixed>  $data
+     * @param  array  $data
+     * @return Response|null
      */
-    public function deploy(array $data = []): ?Response
+    public function deploy(array $data = [])
     {
         if (! $this->token) {
             return null;
@@ -71,16 +86,18 @@ class SentinelClient
             return Http::withToken($this->token)
                 ->timeout($this->timeout)
                 ->acceptJson()
-                ->post($this->baseUrl.'/api/v1/deploy', $data);
-        } catch (\Throwable) {
+                ->post($this->baseUrl . '/api/v1/deploy', $data);
+        } catch (\Throwable $e) {
             return null;
         }
     }
 
     /**
      * Send a heartbeat ping.
+     *
+     * @return Response|null
      */
-    public function heartbeat(): ?Response
+    public function heartbeat()
     {
         if (! $this->token) {
             return null;
@@ -90,18 +107,24 @@ class SentinelClient
             return Http::withToken($this->token)
                 ->timeout($this->timeout)
                 ->acceptJson()
-                ->get($this->baseUrl.'/api/v1/health');
-        } catch (\Throwable) {
+                ->get($this->baseUrl . '/api/v1/health');
+        } catch (\Throwable $e) {
             return null;
         }
     }
 
-    public function getToken(): ?string
+    /**
+     * @return string|null
+     */
+    public function getToken()
     {
         return $this->token;
     }
 
-    public function isConfigured(): bool
+    /**
+     * @return bool
+     */
+    public function isConfigured()
     {
         return $this->token !== null && $this->token !== '';
     }

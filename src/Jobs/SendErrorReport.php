@@ -13,28 +13,33 @@ class SendErrorReport implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries = 3;
+    /** @var int */
+    public $tries = 3;
 
-    public int $backoff = 10;
+    /** @var int */
+    public $backoff = 10;
+
+    /** @var array */
+    public $payload;
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array  $payload
      */
-    public function __construct(
-        public array $payload,
-    ) {}
+    public function __construct(array $payload)
+    {
+        $this->payload = $payload;
+    }
 
-    public function handle(SentinelClient $client): void
+    public function handle(SentinelClient $client)
     {
         $client->report($this->payload);
     }
 
     /**
-     * Determine if the job should fail silently.
+     * @param  \Throwable|null  $exception
      */
-    public function failed(?\Throwable $exception): void
+    public function failed($exception)
     {
         // Silently fail — we don't want to create infinite loops
-        // by reporting Sentinel failures to Sentinel
     }
 }

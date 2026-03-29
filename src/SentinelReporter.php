@@ -6,11 +6,19 @@ use UpgradeLabs\SentinelLaravel\Jobs\SendErrorReport;
 
 class SentinelReporter
 {
-    public function __construct(
-        protected SentinelClient $client,
-    ) {}
+    /** @var SentinelClient */
+    protected $client;
 
-    public function report(\Throwable $exception): void
+    public function __construct(SentinelClient $client)
+    {
+        $this->client = $client;
+    }
+
+    /**
+     * @param  \Throwable  $exception
+     * @return void
+     */
+    public function report(\Throwable $exception)
     {
         if ($this->shouldIgnore($exception)) {
             return;
@@ -28,9 +36,10 @@ class SentinelReporter
     }
 
     /**
-     * @return array<string, mixed>
+     * @param  \Throwable  $exception
+     * @return array
      */
-    public function buildPayload(\Throwable $exception): array
+    public function buildPayload(\Throwable $exception)
     {
         $payload = [
             'exception_class' => get_class($exception),
@@ -58,7 +67,11 @@ class SentinelReporter
         return $payload;
     }
 
-    protected function shouldIgnore(\Throwable $exception): bool
+    /**
+     * @param  \Throwable  $exception
+     * @return bool
+     */
+    protected function shouldIgnore(\Throwable $exception)
     {
         $ignored = config('sentinel.ignored_exceptions', []);
 
@@ -71,28 +84,48 @@ class SentinelReporter
         return false;
     }
 
-    protected function determineSeverity(\Throwable $exception): string
+    /**
+     * @param  \Throwable  $exception
+     * @return string
+     */
+    protected function determineSeverity(\Throwable $exception)
     {
         if ($exception instanceof \Error) {
             return 'fatal';
         }
 
         if ($exception instanceof \ErrorException) {
-            return match ($exception->getSeverity()) {
-                E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR => 'fatal',
-                E_WARNING, E_CORE_WARNING, E_COMPILE_WARNING, E_USER_WARNING => 'warning',
-                E_NOTICE, E_USER_NOTICE, E_STRICT, E_DEPRECATED, E_USER_DEPRECATED => 'notice',
-                default => 'error',
-            };
+            $severity = $exception->getSeverity();
+
+            switch ($severity) {
+                case E_ERROR:
+                case E_CORE_ERROR:
+                case E_COMPILE_ERROR:
+                case E_USER_ERROR:
+                    return 'fatal';
+                case E_WARNING:
+                case E_CORE_WARNING:
+                case E_COMPILE_WARNING:
+                case E_USER_WARNING:
+                    return 'warning';
+                case E_NOTICE:
+                case E_USER_NOTICE:
+                case E_STRICT:
+                case E_DEPRECATED:
+                case E_USER_DEPRECATED:
+                    return 'notice';
+                default:
+                    return 'error';
+            }
         }
 
         return 'error';
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array
      */
-    protected function collectRequestData(): array
+    protected function collectRequestData()
     {
         try {
             $request = request();
@@ -101,7 +134,6 @@ class SentinelReporter
 
             $input = $request->except($filteredFields);
 
-            // Redact any nested filtered fields
             foreach ($filteredFields as $field) {
                 array_walk_recursive($input, function (&$value, $key) use ($field) {
                     if (strcasecmp($key, $field) === 0) {
@@ -119,16 +151,16 @@ class SentinelReporter
                     'headers' => $this->filterHeaders($request->headers->all()),
                 ],
             ];
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
             return [];
         }
     }
 
     /**
-     * @param  array<string, mixed>  $headers
-     * @return array<string, mixed>
+     * @param  array  $headers
+     * @return array
      */
-    protected function filterHeaders(array $headers): array
+    protected function filterHeaders(array $headers)
     {
         $sensitiveHeaders = ['authorization', 'cookie', 'x-csrf-token', 'x-xsrf-token'];
 
@@ -142,9 +174,9 @@ class SentinelReporter
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return array|null
      */
-    protected function collectUserData(): ?array
+    protected function collectUserData()
     {
         try {
             $user = auth()->user();
@@ -155,22 +187,22 @@ class SentinelReporter
 
             return [
                 'id' => $user->getAuthIdentifier(),
-                'email' => $user->email ?? null,
-                'name' => $user->name ?? null,
+                'email' => isset($user->email) ? $user->email : null,
+                'name' => isset($user->name) ? $user->name : null,
             ];
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
             return null;
         }
     }
 
     /**
-     * @return array<string, mixed>
+     * @param  \Throwable  $exception
+     * @return array
      */
-    protected function collectContext(\Throwable $exception): array
+    protected function collectContext(\Throwable $exception)
     {
         $context = [];
 
-        // Include previous exception info
         if ($exception->getPrevious()) {
             $prev = $exception->getPrevious();
             $context['previous_exception'] = [
@@ -181,7 +213,6 @@ class SentinelReporter
             ];
         }
 
-        // Include exception code if set
         if ($exception->getCode()) {
             $context['code'] = $exception->getCode();
         }

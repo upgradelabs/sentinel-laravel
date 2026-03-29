@@ -14,7 +14,10 @@ use UpgradeLabs\SentinelLaravel\SentinelClient;
  */
 class Sentinel extends Facade
 {
-    protected static function getFacadeAccessor(): string
+    /**
+     * @return string
+     */
+    protected static function getFacadeAccessor()
     {
         return SentinelClient::class;
     }

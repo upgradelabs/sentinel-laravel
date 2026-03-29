@@ -7,31 +7,31 @@ use Illuminate\Support\ServiceProvider;
 
 class SentinelServiceProvider extends ServiceProvider
 {
-    public function register(): void
+    public function register()
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/sentinel.php', 'sentinel');
+        $this->mergeConfigFrom(__DIR__ . '/../config/sentinel.php', 'sentinel');
 
         $this->app->singleton(SentinelClient::class, function ($app) {
             return new SentinelClient(
-                token: config('sentinel.token'),
-                timeout: config('sentinel.timeout', 5),
+                config('sentinel.token'),
+                config('sentinel.timeout', 5)
             );
         });
 
         $this->app->singleton(SentinelReporter::class, function ($app) {
             return new SentinelReporter(
-                $app->make(SentinelClient::class),
+                $app->make(SentinelClient::class)
             );
         });
 
         $this->app->alias(SentinelClient::class, 'sentinel');
     }
 
-    public function boot(): void
+    public function boot()
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/sentinel.php' => $this->app->configPath('sentinel.php'),
+                __DIR__ . '/../config/sentinel.php' => $this->app->configPath('sentinel.php'),
             ], 'sentinel-config');
         }
 
@@ -40,7 +40,10 @@ class SentinelServiceProvider extends ServiceProvider
         }
     }
 
-    protected function isEnabled(): bool
+    /**
+     * @return bool
+     */
+    protected function isEnabled()
     {
         if (! config('sentinel.enabled', true)) {
             return false;
@@ -59,7 +62,7 @@ class SentinelServiceProvider extends ServiceProvider
         return true;
     }
 
-    protected function registerExceptionHandler(): void
+    protected function registerExceptionHandler()
     {
         $this->app->booted(function () {
             try {
@@ -72,8 +75,8 @@ class SentinelServiceProvider extends ServiceProvider
                         return false;
                     });
                 }
-            } catch (\Throwable) {
-                // Silently fail if handler can't be resolved
+            } catch (\Throwable $e) {
+                // Silently fail
             }
         });
     }
