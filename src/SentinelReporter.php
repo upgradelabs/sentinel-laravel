@@ -62,7 +62,21 @@ class SentinelReporter
             $payload['user_data'] = $this->collectUserData();
         }
 
-        $payload['context'] = $this->collectContext($exception);
+        // Merge custom context + breadcrumbs + performance
+        $context = $this->collectContext($exception);
+        $customContext = SentinelContext::get();
+        if (! empty($customContext)) {
+            $context = array_merge($context, $customContext);
+        }
+        $payload['context'] = $context;
+
+        $breadcrumbs = SentinelContext::getBreadcrumbs();
+        if (! empty($breadcrumbs)) {
+            $payload['context']['breadcrumbs'] = $breadcrumbs;
+        }
+
+        // Clear after collecting
+        SentinelContext::flush();
 
         return $payload;
     }

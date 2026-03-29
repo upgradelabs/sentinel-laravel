@@ -145,4 +145,21 @@ return [
 
     'heartbeat' => env('SENTINEL_HEARTBEAT', true),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Breadcrumbs
+    |--------------------------------------------------------------------------
+    |
+    | Breadcrumbs track the sequence of events leading up to an error.
+    | Enable/disable specific breadcrumb types below.
+    |
+    */
+
+    'breadcrumbs' => [
+        'enabled' => true,
+        'queries' => true,
+        'cache' => false,
+        'jobs' => true,
+    ],
+
 ];

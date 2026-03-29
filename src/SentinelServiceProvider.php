@@ -43,6 +43,7 @@ class SentinelServiceProvider extends ServiceProvider
         if ($this->isEnabled()) {
             $this->registerExceptionHandler();
             $this->registerHeartbeat();
+            $this->registerBreadcrumbs();
         }
     }
 
@@ -86,6 +87,21 @@ class SentinelServiceProvider extends ServiceProvider
                 })->everyFiveMinutes()->name('sentinel:heartbeat')->withoutOverlapping();
             }
         });
+    }
+
+    protected function registerBreadcrumbs()
+    {
+        if (! config('sentinel.breadcrumbs.enabled', true)) {
+            return;
+        }
+
+        try {
+            $this->app->make('events')->subscribe(
+                new \UpgradeLabs\SentinelLaravel\Listeners\BreadcrumbEventSubscriber
+            );
+        } catch (\Throwable $e) {
+            // Silent fail
+        }
     }
 
     protected function registerExceptionHandler()
