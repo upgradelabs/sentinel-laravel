@@ -131,7 +131,57 @@ Sensitive fields are automatically redacted from request data:
 
 ## Deploy Tracking
 
-Record deployments so Sentinel can correlate errors with releases:
+Notify Sentinel when you deploy so you can correlate errors with releases.
+
+### Artisan command (recommended)
+
+```bash
+# Auto-detect version, commit, and branch from git
+php artisan sentinel:deploy --auto
+
+# With explicit values
+php artisan sentinel:deploy --version=1.2.0 --deployer="GitHub Actions"
+
+# Full options
+php artisan sentinel:deploy \
+  --version=1.2.0 \
+  --commit=abc123def \
+  --branch=main \
+  --environment=production \
+  --deployer="CI/CD" \
+  --description="Fix payment bug"
+```
+
+All flags are optional. Use `--auto` to detect version (from git tag), commit hash, and branch automatically.
+
+### In CI/CD pipelines
+
+**GitHub Actions:**
+```yaml
+- name: Notify Sentinel of deploy
+  run: php artisan sentinel:deploy --auto --deployer="GitHub Actions"
+```
+
+**Laravel Forge / Envoyer (deploy script):**
+```bash
+php artisan sentinel:deploy --auto --deployer="Forge"
+```
+
+**Or with curl (no package needed):**
+```bash
+curl -X POST https://sentinel.upgradelabs.pt/api/v1/deploy \
+  -H "Authorization: Bearer $SENTINEL_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "version": "1.2.0",
+    "commit_hash": "'$(git rev-parse HEAD)'",
+    "branch": "'$(git branch --show-current)'",
+    "environment": "production",
+    "deployer": "CI/CD"
+  }'
+```
+
+### Programmatic usage
 
 ```php
 app(\UpgradeLabs\SentinelLaravel\SentinelClient::class)->deploy([

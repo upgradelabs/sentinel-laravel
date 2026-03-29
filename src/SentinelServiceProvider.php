@@ -10,7 +10,7 @@ class SentinelServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/sentinel.php', 'sentinel');
+        $this->mergeConfigFrom(__DIR__.'/../config/sentinel.php', 'sentinel');
 
         $this->app->singleton(SentinelClient::class, function ($app) {
             return new SentinelClient(
@@ -32,8 +32,12 @@ class SentinelServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/sentinel.php' => $this->app->configPath('sentinel.php'),
+                __DIR__.'/../config/sentinel.php' => $this->app->configPath('sentinel.php'),
             ], 'sentinel-config');
+
+            $this->commands([
+                \UpgradeLabs\SentinelLaravel\Commands\SentinelDeployCommand::class,
+            ]);
         }
 
         if ($this->isEnabled()) {
