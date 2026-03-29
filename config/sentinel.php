@@ -1,26 +1,20 @@
 <?php
 
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 return [
-
-    /*
-    |--------------------------------------------------------------------------
-    | Sentinel URL
-    |--------------------------------------------------------------------------
-    |
-    | The base URL of your Sentinel dashboard instance.
-    | Example: https://sentinel.test or https://sentinel.yourdomain.com
-    |
-    */
-
-    'url' => env('SENTINEL_URL'),
 
     /*
     |--------------------------------------------------------------------------
     | API Token
     |--------------------------------------------------------------------------
     |
-    | The API token for your project in Sentinel. You can find this in the
-    | project settings on your Sentinel dashboard.
+    | The API token for your project in Sentinel. This token identifies your
+    | application. You can find it when creating a project on the Sentinel
+    | dashboard or via: php artisan sentinel:create-project
     |
     */
 
@@ -60,10 +54,10 @@ return [
     */
 
     'ignored_exceptions' => [
-        Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class,
-        Illuminate\Validation\ValidationException::class,
-        Illuminate\Auth\AuthenticationException::class,
-        Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException::class,
+        NotFoundHttpException::class,
+        ValidationException::class,
+        AuthenticationException::class,
+        MethodNotAllowedHttpException::class,
     ],
 
     /*

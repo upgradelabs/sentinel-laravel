@@ -1,6 +1,6 @@
 # Sentinel Laravel
 
-Error reporting client for [Sentinel](https://github.com/upgradelabs/sentinel). Captures exceptions from your Laravel application and sends them to your Sentinel dashboard.
+Error reporting client for [Sentinel](https://sentinel.upgradelabs.pt). Captures exceptions from your Laravel application and sends them to your Sentinel dashboard.
 
 **Compatible with Laravel 8, 9, 10, 11, 12, and 13.**
 
@@ -12,21 +12,21 @@ composer require upgradelabs/sentinel-laravel
 
 ## Configuration
 
-Publish the config file:
+Add your Sentinel API token to `.env`:
+
+```env
+SENTINEL_TOKEN=your-project-api-token
+```
+
+That's it. Sentinel will automatically capture and report unhandled exceptions.
+
+The token identifies your project — you get it when creating a project on the Sentinel dashboard or via `php artisan sentinel:create-project` on the Sentinel server.
+
+### Publish config (optional)
 
 ```bash
 php artisan vendor:publish --tag=sentinel-config
 ```
-
-Add your Sentinel credentials to `.env`:
-
-```env
-SENTINEL_URL=https://sentinel.test
-SENTINEL_TOKEN=your-project-api-token
-SENTINEL_ENABLED=true
-```
-
-That's it. Sentinel will automatically capture and report unhandled exceptions.
 
 ## Optional Configuration
 
@@ -42,6 +42,12 @@ SENTINEL_ENVIRONMENTS=production,staging
 SENTINEL_QUEUE=default
 ```
 
+### Disable reporting
+
+```env
+SENTINEL_ENABLED=false
+```
+
 ### Ignored exceptions
 
 Edit `config/sentinel.php` to customize which exceptions are ignored:
@@ -55,11 +61,9 @@ Edit `config/sentinel.php` to customize which exceptions are ignored:
 
 ## Manual Reporting
 
-You can manually report exceptions or messages:
+You can manually report exceptions:
 
 ```php
-use UpgradeLabs\SentinelLaravel\Facades\Sentinel;
-
 // Report an exception manually
 try {
     // risky operation
@@ -117,11 +121,18 @@ Verify your setup:
 
 ```bash
 php artisan tinker
+
+# Check configuration
 >>> app(\UpgradeLabs\SentinelLaravel\SentinelClient::class)->isConfigured()
 // Should return: true
 
->>> app(\UpgradeLabs\SentinelLaravel\SentinelReporter::class)->report(new \RuntimeException('Test from tinker'));
-// Check your Sentinel dashboard — the error should appear
+# Send a test error report
+>>> $response = app(\UpgradeLabs\SentinelLaravel\SentinelClient::class)->testReport()
+>>> $response->status()   // Should return: 201
+>>> $response->json()     // Should show: {"message": "Error reported successfully.", ...}
+
+# Or test with a real exception
+>>> app(\UpgradeLabs\SentinelLaravel\SentinelReporter::class)->report(new \RuntimeException('Test from tinker'))
 ```
 
 ## License

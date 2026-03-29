@@ -7,8 +7,9 @@ use Illuminate\Support\Facades\Http;
 
 class SentinelClient
 {
+    protected string $baseUrl = 'https://sentinel.upgradelabs.pt';
+
     public function __construct(
-        protected ?string $url,
         protected ?string $token,
         protected int $timeout = 5,
     ) {}
@@ -20,11 +21,11 @@ class SentinelClient
      */
     public function report(array $payload): ?Response
     {
-        if (! $this->url || ! $this->token) {
+        if (! $this->token) {
             return null;
         }
 
-        $endpoint = rtrim($this->url, '/').'/api/v1/report';
+        $endpoint = $this->baseUrl.'/api/v1/report';
 
         try {
             return Http::withToken($this->token)
@@ -37,9 +38,22 @@ class SentinelClient
         }
     }
 
-    public function getUrl(): ?string
+    /**
+     * Send a test error report to verify the connection.
+     */
+    public function testReport(): ?Response
     {
-        return $this->url;
+        return $this->report([
+            'exception_class' => 'UpgradeLabs\\SentinelLaravel\\TestException',
+            'message' => 'This is a test error from Sentinel Laravel package.',
+            'file' => 'tinker',
+            'line' => 1,
+            'severity' => 'info',
+            'stack_trace' => '#0 tinker: test report',
+            'laravel_version' => app()->version(),
+            'php_version' => PHP_VERSION,
+            'environment' => app()->environment(),
+        ]);
     }
 
     public function getToken(): ?string
@@ -49,6 +63,6 @@ class SentinelClient
 
     public function isConfigured(): bool
     {
-        return $this->url !== null && $this->token !== null;
+        return $this->token !== null && $this->token !== '';
     }
 }

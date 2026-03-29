@@ -3,6 +3,7 @@
 namespace UpgradeLabs\SentinelLaravel\Tests;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\ValidationException;
 use UpgradeLabs\SentinelLaravel\SentinelReporter;
 
 class SentinelReporterTest extends TestCase
@@ -14,7 +15,7 @@ class SentinelReporterTest extends TestCase
         $exception = new \RuntimeException('Something went wrong');
         $payload = $reporter->buildPayload($exception);
 
-        $this->assertEquals(config('app.name'), $payload['app_name']);
+        $this->assertArrayNotHasKey('app_name', $payload);
         $this->assertEquals('RuntimeException', $payload['exception_class']);
         $this->assertEquals('Something went wrong', $payload['message']);
         $this->assertEquals('error', $payload['severity']);
@@ -41,7 +42,7 @@ class SentinelReporterTest extends TestCase
 
         $reporter = app(SentinelReporter::class);
 
-        $reporter->report(new \Illuminate\Validation\ValidationException(
+        $reporter->report(new ValidationException(
             validator([], [])
         ));
 
@@ -51,7 +52,7 @@ class SentinelReporterTest extends TestCase
     public function test_reports_non_ignored_exceptions(): void
     {
         Http::fake([
-            'sentinel.test/api/v1/report' => Http::response(['message' => 'OK'], 201),
+            'sentinel.upgradelabs.pt/api/v1/report' => Http::response(['message' => 'OK'], 201),
         ]);
 
         $reporter = app(SentinelReporter::class);

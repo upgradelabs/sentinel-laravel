@@ -12,19 +12,18 @@ class SentinelClientTest extends TestCase
         $client = app(SentinelClient::class);
 
         $this->assertTrue($client->isConfigured());
-        $this->assertEquals('https://sentinel.test', $client->getUrl());
+        $this->assertEquals('test-token', $client->getToken());
     }
 
     public function test_client_sends_report(): void
     {
         Http::fake([
-            'sentinel.test/api/v1/report' => Http::response(['message' => 'OK'], 201),
+            'sentinel.upgradelabs.pt/api/v1/report' => Http::response(['message' => 'OK'], 201),
         ]);
 
         $client = app(SentinelClient::class);
 
         $response = $client->report([
-            'app_name' => 'Test App',
             'exception_class' => 'RuntimeException',
             'message' => 'Test error',
         ]);
@@ -33,7 +32,7 @@ class SentinelClientTest extends TestCase
         $this->assertEquals(201, $response->status());
 
         Http::assertSent(function ($request) {
-            return $request->url() === 'https://sentinel.test/api/v1/report'
+            return $request->url() === 'https://sentinel.upgradelabs.pt/api/v1/report'
                 && $request->hasHeader('Authorization', 'Bearer test-token')
                 && $request['exception_class'] === 'RuntimeException';
         });
@@ -41,7 +40,7 @@ class SentinelClientTest extends TestCase
 
     public function test_client_returns_null_when_not_configured(): void
     {
-        $client = new SentinelClient(null, null);
+        $client = new SentinelClient(null);
 
         $this->assertFalse($client->isConfigured());
         $this->assertNull($client->report(['test' => true]));
@@ -50,12 +49,12 @@ class SentinelClientTest extends TestCase
     public function test_client_fails_silently_on_network_error(): void
     {
         Http::fake([
-            'sentinel.test/api/v1/report' => Http::throw(fn () => throw new \Exception('Connection refused')),
+            'sentinel.upgradelabs.pt/api/v1/report' => Http::throw(fn () => throw new \Exception('Connection refused')),
         ]);
 
         $client = app(SentinelClient::class);
 
-        $response = $client->report(['app_name' => 'Test', 'exception_class' => 'RuntimeException', 'message' => 'Error']);
+        $response = $client->report(['exception_class' => 'RuntimeException', 'message' => 'Error']);
 
         $this->assertNull($response);
     }

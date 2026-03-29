@@ -16,7 +16,6 @@ class TestCase extends Orchestra
 
     protected function defineEnvironment($app): void
     {
-        $app['config']->set('sentinel.url', 'https://sentinel.test');
         $app['config']->set('sentinel.token', 'test-token');
         $app['config']->set('sentinel.enabled', true);
     }

@@ -33,7 +33,6 @@ class SentinelReporter
     public function buildPayload(\Throwable $exception): array
     {
         $payload = [
-            'app_name' => config('app.name', 'Laravel'),
             'exception_class' => get_class($exception),
             'message' => $exception->getMessage(),
             'file' => $exception->getFile(),

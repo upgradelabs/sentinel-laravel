@@ -2,6 +2,7 @@
 
 namespace UpgradeLabs\SentinelLaravel;
 
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\ServiceProvider;
 
 class SentinelServiceProvider extends ServiceProvider
@@ -12,9 +13,14 @@ class SentinelServiceProvider extends ServiceProvider
 
         $this->app->singleton(SentinelClient::class, function ($app) {
             return new SentinelClient(
-                url: config('sentinel.url'),
                 token: config('sentinel.token'),
                 timeout: config('sentinel.timeout', 5),
+            );
+        });
+
+        $this->app->singleton(SentinelReporter::class, function ($app) {
+            return new SentinelReporter(
+                $app->make(SentinelClient::class),
             );
         });
 
@@ -40,7 +46,7 @@ class SentinelServiceProvider extends ServiceProvider
             return false;
         }
 
-        if (! config('sentinel.url') || ! config('sentinel.token')) {
+        if (! config('sentinel.token')) {
             return false;
         }
 
@@ -55,19 +61,20 @@ class SentinelServiceProvider extends ServiceProvider
 
     protected function registerExceptionHandler(): void
     {
-        $this->app->make(\Illuminate\Contracts\Debug\ExceptionHandler::class);
-
-        // Use reportable() for Laravel 8+ — works across all versions
-        if (method_exists($this->app, 'hasBeenBootstrapped')) {
-            $this->app->booted(function () {
-                $handler = $this->app->make(\Illuminate\Contracts\Debug\ExceptionHandler::class);
+        $this->app->booted(function () {
+            try {
+                $handler = $this->app->make(ExceptionHandler::class);
 
                 if (method_exists($handler, 'reportable')) {
                     $handler->reportable(function (\Throwable $e) {
                         $this->app->make(SentinelReporter::class)->report($e);
-                    })->stop(false);
+
+                        return false;
+                    });
                 }
-            });
-        }
+            } catch (\Throwable) {
+                // Silently fail if handler can't be resolved
+            }
+        });
     }
 }
