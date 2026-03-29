@@ -140,11 +140,11 @@ Notify Sentinel when you deploy so you can correlate errors with releases.
 php artisan sentinel:deploy --auto
 
 # With explicit values
-php artisan sentinel:deploy --version=1.2.0 --deployer="GitHub Actions"
+php artisan sentinel:deploy --tag=1.2.0 --deployer="GitHub Actions"
 
 # Full options
 php artisan sentinel:deploy \
-  --version=1.2.0 \
+  --tag=1.2.0 \
   --commit=abc123def \
   --branch=main \
   --environment=production \
@@ -152,7 +152,7 @@ php artisan sentinel:deploy \
   --description="Fix payment bug"
 ```
 
-All flags are optional. Use `--auto` to detect version (from git tag), commit hash, and branch automatically.
+All flags are optional. Use `--auto` to detect tag (from git tag), commit hash, and branch automatically.
 
 ### In CI/CD pipelines
 

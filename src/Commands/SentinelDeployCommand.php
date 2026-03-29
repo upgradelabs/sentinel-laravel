@@ -8,13 +8,13 @@ use UpgradeLabs\SentinelLaravel\SentinelClient;
 class SentinelDeployCommand extends Command
 {
     protected $signature = 'sentinel:deploy
-        {--version= : Release version (e.g. 1.2.0)}
+        {--tag= : Release version/tag (e.g. 1.2.0)}
         {--commit= : Git commit hash}
         {--branch= : Git branch name}
         {--environment= : Environment (production, staging, etc.)}
         {--deployer= : Who or what triggered the deploy}
         {--description= : Optional deploy description}
-        {--auto : Auto-detect version, commit, and branch from git}';
+        {--auto : Auto-detect tag, commit, and branch from git}';
 
     protected $description = 'Notify Sentinel of a new deployment';
 
@@ -27,7 +27,7 @@ class SentinelDeployCommand extends Command
         }
 
         $data = array_filter([
-            'version' => $this->option('version'),
+            'version' => $this->option('tag'),
             'commit_hash' => $this->option('commit'),
             'branch' => $this->option('branch'),
             'environment' => $this->option('environment') ?: app()->environment(),
