@@ -2,6 +2,7 @@
 
 namespace UpgradeLabs\SentinelLaravel;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,6 +38,7 @@ class SentinelServiceProvider extends ServiceProvider
 
         if ($this->isEnabled()) {
             $this->registerExceptionHandler();
+            $this->registerHeartbeat();
         }
     }
 
@@ -60,6 +62,26 @@ class SentinelServiceProvider extends ServiceProvider
         }
 
         return true;
+    }
+
+    protected function registerHeartbeat()
+    {
+        if (! config('sentinel.heartbeat', true)) {
+            return;
+        }
+
+        $this->app->booted(function () {
+            if ($this->app->bound(Schedule::class)) {
+                $schedule = $this->app->make(Schedule::class);
+                $schedule->call(function () {
+                    try {
+                        $this->app->make(SentinelClient::class)->heartbeat();
+                    } catch (\Throwable $e) {
+                        // Silent fail
+                    }
+                })->everyFiveMinutes()->name('sentinel:heartbeat')->withoutOverlapping();
+            }
+        });
     }
 
     protected function registerExceptionHandler()

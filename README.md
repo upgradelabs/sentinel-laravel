@@ -48,6 +48,20 @@ SENTINEL_QUEUE=default
 SENTINEL_ENABLED=false
 ```
 
+### Heartbeat (automatic)
+
+Sentinel pings the dashboard every 5 minutes to report your app is alive. This powers the status page. It's enabled by default — requires the Laravel scheduler to be running:
+
+```bash
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+To disable:
+
+```env
+SENTINEL_HEARTBEAT=false
+```
+
 ### Ignored exceptions
 
 Edit `config/sentinel.php` to customize which exceptions are ignored:

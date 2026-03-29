@@ -130,4 +130,19 @@ return [
 
     'queue' => env('SENTINEL_QUEUE'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Heartbeat
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, Sentinel will automatically ping the dashboard every
+    | 5 minutes to report that your application is alive. This powers the
+    | status page and "Unreachable" detection.
+    |
+    | Requires the Laravel scheduler to be running (cron).
+    |
+    */
+
+    'heartbeat' => env('SENTINEL_HEARTBEAT', true),
+
 ];
